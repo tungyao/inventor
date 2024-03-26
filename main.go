@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	uc "github.com/tungyao/ultimate-cedar"
-	"io"
 	"log"
 	"net/http"
 	"os"
@@ -11,20 +10,23 @@ import (
 
 func main() {
 	r := uc.NewRouter()
+	var port string = "8000"
+	if len(os.Args) > 1 {
+		port = os.Args[1]
+	}
+	log.Println("listen on " + port)
 	r.Get("/", Index)
 	r.Get("/static/app.css", func(writer uc.ResponseWriter, request uc.Request) {
-		fs, _ := os.Open("./css/bootstrap.min.css")
-		s, _ := io.ReadAll(fs)
-		fs.Close()
 		writer.Header().Set("content-type", "text/css")
-		writer.Write(s)
+		writer.Header().Set("Cache-Control", "public, max-age=31536000")
+		writer.Header().Set("Content-Length", fmt.Sprintf("%d", len(css)))
+		writer.Write(css)
 	})
 	r.Get("/static/app.js", func(writer uc.ResponseWriter, request uc.Request) {
-		fs, _ := os.Open("./js/bootstrap.min.js")
-		s, _ := io.ReadAll(fs)
-		fs.Close()
-		writer.Header().Set("content-type", "text/javascript")
-		writer.Write(s)
+		writer.Header().Set("Cache-Control", "public, max-age=31536000")
+		writer.Header().Set("content-type", "application/javascript")
+		writer.Header().Set("Content-Length", fmt.Sprintf("%d", len(js)))
+		writer.Write(js)
 	})
 	r.Get("/del", func(writer uc.ResponseWriter, request uc.Request) {
 		id := request.URL.Query().Get("id")
@@ -72,7 +74,7 @@ func main() {
 		}
 		return
 	})
-	if err := http.ListenAndServe(":8000", r); err != nil {
+	if err := http.ListenAndServe(":"+port, r); err != nil {
 		log.Fatalln(err)
 	}
 }

@@ -5,16 +5,19 @@ import (
 	_ "embed"
 	_ "github.com/mattn/go-sqlite3"
 	uc "github.com/tungyao/ultimate-cedar"
-	"io"
-	"math"
-	"os"
-
 	"html/template"
 	"log"
+	"math"
 )
 
 //go:embed index.html
 var indexHtml string
+
+//go:embed css/bootstrap.min.css
+var css []byte
+
+//go:embed js/bootstrap.min.js
+var js []byte
 
 var db *sql.DB
 
@@ -40,9 +43,7 @@ type data struct {
 func Index(w uc.ResponseWriter, r uc.Request) {
 
 	page, limit := pagination(r)
-	fs, _ := os.Open("./index.html")
-	s, _ := io.ReadAll(fs)
-	fs.Close()
+	s := indexHtml
 
 	var search = r.Query.Get("search")
 
