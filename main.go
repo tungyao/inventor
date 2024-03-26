@@ -1,0 +1,78 @@
+package main
+
+import (
+	"fmt"
+	uc "github.com/tungyao/ultimate-cedar"
+	"io"
+	"log"
+	"net/http"
+	"os"
+)
+
+func main() {
+	r := uc.NewRouter()
+	r.Get("/", Index)
+	r.Get("/static/app.css", func(writer uc.ResponseWriter, request uc.Request) {
+		fs, _ := os.Open("./css/bootstrap.min.css")
+		s, _ := io.ReadAll(fs)
+		fs.Close()
+		writer.Header().Set("content-type", "text/css")
+		writer.Write(s)
+	})
+	r.Get("/static/app.js", func(writer uc.ResponseWriter, request uc.Request) {
+		fs, _ := os.Open("./js/bootstrap.min.js")
+		s, _ := io.ReadAll(fs)
+		fs.Close()
+		writer.Header().Set("content-type", "text/javascript")
+		writer.Write(s)
+	})
+	r.Get("/del", func(writer uc.ResponseWriter, request uc.Request) {
+		id := request.URL.Query().Get("id")
+		writer.Header().Set("content-type", "application/json")
+		if id != "" {
+			_, err := db.Exec("delete from main.data where id=?", id)
+			if err != nil {
+				log.Println(err)
+				writer.Data(`{"ok":"no","msg":"删除失败"}`)
+				return
+			}
+			writer.Data(`{"ok":"yes"}`)
+		}
+		writer.Data(`{"ok":"no","msg":"id不能为空"}`)
+	})
+	r.Post("/save", func(writer uc.ResponseWriter, request uc.Request) {
+		dt := &data{}
+		writer.Header().Set("content-type", "application/json")
+		if err := IoRead(request, dt); err != nil {
+			log.Println(err)
+			writer.Data(`{"ok":"no","msg":"数据格式错误"}`)
+			return
+		}
+		n, err := db.Exec("insert into main.data (`name`,`model`,`footprint`,`number`)values(?,?,?,?)", dt.Name, dt.Model, dt.Footprint, dt.Number)
+		if err != nil {
+			log.Println(err)
+			writer.Data(`{"ok":"no","msg":"保存失败"}`)
+		}
+		nm, _ := n.LastInsertId()
+		writer.Data(fmt.Sprintf(`{"ok":"yes","msg":"保存成功","id":%d}`, nm))
+	})
+	r.Post("/edit", func(writer uc.ResponseWriter, request uc.Request) {
+		dt := &data{}
+		writer.Header().Set("content-type", "application/json")
+		if err := IoRead(request, dt); err != nil {
+			log.Println(err)
+			writer.Data(`{"ok":"no","msg":"数据格式错误"}`)
+			return
+		}
+		if _, err := db.Exec("update main.data set `name`=?,`model`=?,`footprint`=?,`number`=? where id=?", dt.Name, dt.Model, dt.Footprint, dt.Number, dt.Id); err != nil {
+			log.Println(err)
+			writer.Data(`{"ok":"no","msg":"保存失败"}`)
+		} else {
+			writer.Data(`{"ok":"yes","msg":"保存成功"}`)
+		}
+		return
+	})
+	if err := http.ListenAndServe(":8000", r); err != nil {
+		log.Fatalln(err)
+	}
+}

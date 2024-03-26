@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link href="static/app.css" rel="stylesheet" type="text/css"/>
+    <title>库存管理</title>
+</head>
+<body>
+<div class="container">
+    <table class="table">
+        <tr>
+            <td>序号</td>
+            <td>名称</td>
+            <td>型号</td>
+            <td>丝印</td>
+            <td>数量</td>
+            <td>操作</td>
+        </tr>
+        {{range $k,$v := .Data }}
+        <tr>
+            <td value="{{$v.Id}}">{{$v.Id}}</td>
+            <td value="{{$v.Name}}">{{$v.Name}}</td>
+            <td value="{{$v.Model}}">{{$v.Model}}</td>
+            <td value="{{$v.Footprint}}">{{$v.Footprint}}</td>
+            <td value="{{$v.Number}}">{{$v.Number}}</td>
+            <td>
+                <button class="btn btn-warning" onclick="edit(this)">编辑</button>
+                <button class="btn btn-danger" onclick="del({{$v.Id}})">删除</button>
+            </td>
+        </tr>
+        {{end}}
+    </table>
+    <div style="display:flex;flex-flow: row nowrap;justify-content: space-around">
+        <span>总共 {{.Count}} 个,{{.Page}} 页 ,当前第 {{.NowPage}} 页</span>
+        <div>
+            <button class="btn btn-dark" data-bs-toggle="modal" data-bs-target="#staticBackdrop">增加</button>
+            {{if gt .PrePage 0}}
+            <a href="/?page={{.PrePage}}&limit={{.Limit}}" class="btn btn-warning">上一页</a>
+            {{end}}
+            {{if le .NextPage .Page}}
+            <a href="/?page={{.NextPage}}&limit={{.Limit}}" class="btn btn-primary">下一页</a>
+            {{end}}
+        </div>
+    </div>
+    <div class="modal fade " id="staticBackdrop"
+         data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel"
+         aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h1 class="modal-title fs-5" id="staticBackdropLabel">Modal title</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="form">
+                        <div class="row">
+                            <div class="col-6">
+                                <label class="form-label">名称</label>
+                                <input name="name" class="form-control">
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label">型号</label>
+                                <input name="model" class="form-control">
+                            </div>
+                        </div>
+                        <div class="row">
+                            <label class="form-label">丝印</label>
+                            <input name="footprint" class="form-control">
+                        </div>
+                        <div class="row">
+                            <label class="form-label">数量</label>
+                            <input name="number" class="form-control">
+                        </div>
+                    </form>
+
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">关闭</button>
+                    <button type="button" class="btn btn-danger" data-bs-dismiss="modal">清空</button>
+                    <button type="button" class="btn btn-primary" onclick="add()" data-bs-dismiss="modal">提交</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="static/app.js"></script>
+<script>
+    function sendAjaxRequest(method, url, data = null, callback) {
+        const xhr = new XMLHttpRequest();
+        // 配置请求方法与URL
+        xhr.open(method, url, true);
+        // 设置请求头，例如对于POST请求，可能需要设置Content-Type
+        if (method === 'POST' && data) {
+            xhr.setRequestHeader('Content-Type', 'application/json');
+        }
+        // 请求完成后的回调函数
+        xhr.onload = function () {
+            if (xhr.status >= 200 && xhr.status < 300) {
+                // 请求成功，调用传入的回调函数处理返回的数据
+                callback(xhr.responseText);
+            } else {
+                console.error('请求失败：', xhr.statusText);
+            }
+        };
+
+        // 发送请求（GET请求不需要data参数，POST请求需要）
+        xhr.send(data ? JSON.stringify(data) : null);
+    }
+
+    function del(id) {
+        if (confirm("确定删除吗？")) {
+            sendAjaxRequest('GET', '/del?id=' + id, null, function (response) {
+                console.log('Response:', response);
+                window.location.reload()
+            });
+        }
+    }
+
+    function addbtn() {
+
+    }
+
+    function add() {
+        // 获取表单数据
+        const form = document.getElementById('form');
+        const formData = new FormData(form);
+        const data = {
+            name: formData.get('name'),
+            model: formData.get('model'),
+            footprint: formData.get('footprint'),
+            number: formData.get('number'),
+        }
+
+        sendAjaxRequest('POST', '/save', data, function (response) {
+            console.log('Response:', response);
+            window.location.reload()
+        })
+    }
+
+    function edit(e) {
+        let data = {}
+        const p = e.parentNode.parentNode.children;
+        console.log(p);
+        data.id = p[0].attributes.getNamedItem('value').value;
+        data.name = p[1].attributes.getNamedItem('value').value;
+        data.model = p[2].attributes.getNamedItem('value').value;
+        data.footprint = p[3].attributes.getNamedItem('value').value;
+        data.number = p[4].attributes.getNamedItem('value').value;
+        console.log(data);
+        // 生成插入行
+        let tr = document.createElement('tr');
+        for (const trElement of data) {
+            let td = document.createElement('td');
+            td.innerHTML = data[i];
+            tr.appendChild(td);
+        }
+    }
+</script>
+</body>
+</html>

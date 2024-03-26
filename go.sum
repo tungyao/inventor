@@ -1,0 +1,4 @@
+github.com/mattn/go-sqlite3 v1.14.22 h1:2gZY6PC6kBnID23Tichd1K+Z0oS6nE/XwU+Vz/5o4kU=
+github.com/mattn/go-sqlite3 v1.14.22/go.mod h1:Uh1q+B4BYcTPb+yiD3kU8Ct7aC0hY9fxUwlHK0RXw+Y=
+github.com/tungyao/ultimate-cedar v1.3.2 h1:/iSVHujuluBYyYmN55Sp5/oPDE7c+iYuyvF6qytxvWk=
+github.com/tungyao/ultimate-cedar v1.3.2/go.mod h1:5LAum+ACQ5FsMeX1A7fyZi2AINd1Yp3D5nICTFoecTQ=
