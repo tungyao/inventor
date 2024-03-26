@@ -43,11 +43,20 @@ func Index(w uc.ResponseWriter, r uc.Request) {
 	fs, _ := os.Open("./index.html")
 	s, _ := io.ReadAll(fs)
 	fs.Close()
+
+	var search = r.Query.Get("search")
+
 	t, err := template.New("index.html").Parse(string(s))
 	if err != nil {
 		log.Println()
 	}
-	rows, err := db.Query("select * from main.data limit ? offset ?", limit, page*limit)
+	var rows *sql.Rows
+
+	if search != "" {
+		rows, err = db.Query("select * from main.data where name like ? or model like ? or footprint like ? or number like ? limit ? offset ?", "%"+search+"%", "%"+search+"%", "%"+search+"%", "%"+search+"%", limit, page*limit)
+	} else {
+		rows, err = db.Query("select * from main.data limit ? offset ?", limit, page*limit)
+	}
 	if err != nil {
 		log.Println(err)
 	}
@@ -69,7 +78,14 @@ func Index(w uc.ResponseWriter, r uc.Request) {
 		}
 		outData.Data = append(outData.Data, d)
 	}
-	row := db.QueryRow("select count(*) from main.data")
+
+	var row *sql.Row
+
+	if search != "" {
+		row = db.QueryRow("select count(*) from main.data where name like ? or model like ? or footprint like ? or number like ?", "%"+search+"%", "%"+search+"%", "%"+search+"%", "%"+search+"%")
+	} else {
+		row = db.QueryRow("select count(*) from main.data")
+	}
 	row.Scan(&outData.Count)
 
 	outData.Page = int(math.Ceil(float64(outData.Count) / float64(limit)))
