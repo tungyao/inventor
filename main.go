@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	uc "github.com/tungyao/ultimate-cedar"
 	"log"
@@ -8,9 +9,18 @@ import (
 	"os"
 )
 
+var (
+	port string
+)
+
 func main() {
+	flag.StringVar(&port, "port", "9002", "port")
+	flag.Parse()
+	if env := os.Getenv("PORT"); env != "" {
+		port = env
+	}
 	r := uc.NewRouter()
-	var port string = "8000"
+	var port string = "9002"
 	if len(os.Args) > 1 {
 		port = os.Args[1]
 	}

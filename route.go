@@ -16,7 +16,7 @@ var indexHtml string
 //go:embed css/bootstrap.min.css
 var css []byte
 
-//go:embed js/bootstrap.min.js
+//go:embed js/bootstrap.js
 var js []byte
 
 var db *sql.DB
