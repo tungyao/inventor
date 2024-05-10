@@ -41,7 +41,6 @@ type data struct {
 }
 
 func Index(w uc.ResponseWriter, r uc.Request) {
-
 	page, limit := pagination(r)
 	s := indexHtml
 
