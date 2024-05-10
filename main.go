@@ -10,17 +10,17 @@ import (
 )
 
 var (
-	port string
+	_port string
 )
 
 func main() {
-	flag.StringVar(&port, "port", "9002", "port")
+	flag.StringVar(&_port, "port", "9002", "port")
 	flag.Parse()
 	if env := os.Getenv("PORT"); env != "" {
-		port = env
+		_port = env
 	}
 	r := uc.NewRouter()
-	var port string = "9002"
+	var port string = _port
 	if len(os.Args) > 1 {
 		port = os.Args[1]
 	}
