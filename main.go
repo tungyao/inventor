@@ -1,7 +1,6 @@
 package main
 
 import (
-	"flag"
 	"fmt"
 	uc "github.com/tungyao/ultimate-cedar"
 	"log"
@@ -10,12 +9,10 @@ import (
 )
 
 var (
-	_port string
+	_port string = "9003"
 )
 
 func main() {
-	flag.StringVar(&_port, "port", "9002", "port")
-	flag.Parse()
 	if env := os.Getenv("PORT"); env != "" {
 		_port = env
 	}
