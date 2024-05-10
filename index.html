@@ -15,6 +15,7 @@
             display: none;
             background-color: #ffffff;
         }
+
         .panel::before {
             content: '';
             width: 300px;
@@ -58,6 +59,13 @@
     </table>
     <div style="display:flex;flex-flow: row nowrap;justify-content: space-around">
         <span>总共 {{.Count}} 个,{{.Page}} 页 ,当前第 {{.NowPage}} 页</span>
+        <select aria-label="number" id="limit" onchange="change_limit(this)">
+            <option value="20">20</option>
+            <option value="50">50</option>
+            <option value="100">100</option>
+            <option value="500">500</option>
+            <option value="1000">1000</option>
+        </select>
         <div>
             <button class="btn btn-dark" data-bs-toggle="modal" data-bs-target="#staticBackdrop">增加</button>
             {{if gt .PrePage 0}}
@@ -136,6 +144,7 @@
         };
         xhr.send(data ? JSON.stringify(data) : null);
     }
+
     function del(id) {
         if (confirm("确定删除吗？")) {
             sendAjaxRequest('GET', '/del?id=' + id, null, function (response) {
@@ -144,6 +153,7 @@
             });
         }
     }
+
     function add() {
         // 获取表单数据
         const form = document.getElementById('form');
@@ -201,16 +211,47 @@
         block.style.display = 'none';
     }
 
+    function getQueryString(name) {
+        let reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)", "i");
+        let r = window.location.search.substring(1).match(reg);
+        if (r != null) {
+            return decodeURIComponent(r[2]);
+        }
+        if (name === "limit") {
+            return "20"
+        }
+        if (name === "page") {
+            return "1"
+        }
+
+        return "";
+    }
+
+    if (getQueryString("limit") !== "") {
+        document.getElementById('limit').value = getQueryString("limit");
+    }
+
     function search() {
         const keyword = document.getElementById('search').value;
         if (keyword === '') {
         } else {
-            window.location.href = '/?search=' + keyword;
+            window.location.href = '/?search=' + keyword + "&page=" + getQueryString("page") + "&limit=" + getQueryString("limit");
         }
     }
-    function clear_it(){
-        window.location.href = '/';
+
+    function clear_it() {
+        window.location.href = '/' + "?limit=" + getQueryString("limit");
     }
+
+    function change_limit() {
+        const limit = document.getElementById('limit').value;
+        let url = window.location.href;
+        if (limit === '') {
+        } else {
+            window.location.href = '/?limit=' + limit + "&search=" + getQueryString("search");
+        }
+    }
+
     document.getElementById('search').addEventListener('keyup', function (event) {
         if (event.code === 'Enter') {
             search();
