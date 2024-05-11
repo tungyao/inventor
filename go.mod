@@ -1,4 +1,4 @@
-module aka
+module inventor
 
 go 1.19
 
